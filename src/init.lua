@@ -1,7 +1,4 @@
-local RunService = game:GetService("RunService")
-local IsServer = RunService:IsServer()
-
-if IsServer then
+if game:GetService("RunService"):IsServer() then
 	-- Server side
 	return require(script.server)
 else
