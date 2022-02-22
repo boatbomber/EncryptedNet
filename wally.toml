@@ -1,0 +1,10 @@
+[package]
+name = "boatbomber/encryptednet"
+description = "A library for encrypting Roblox networking with ECDH key exchanges and ChaCha20 ciphering."
+version = "1.0.0"
+license = "MIT"
+authors = ["boatbomber (https://boatbomber.com)"]
+registry = "https://github.com/upliftgames/wally-index"
+realm = "shared"
+include = ["src", "src/**", "wally.toml", "wally.lock", "default.project.json"]
+exclude = ["**"]
