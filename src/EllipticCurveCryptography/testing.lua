@@ -19,12 +19,12 @@ local clientSecret = ecc.exchange(clientPrivate, serverPublic)
 
 --print("\nsharedSecret:", printBytes(serverSecret))
 
-assert(tostring(serverSecret)==tostring(clientSecret), "sharedSecret must be identical to both parties")
+assert(tostring(serverSecret) == tostring(clientSecret), "sharedSecret must be identical to both parties")
 
 local data = table.create(50)
-for i=1, 100 do
-	for x=1,50 do
-		data[x] = math.random(35,120)
+for i = 1, 100 do
+	for x = 1, 50 do
+		data[x] = math.random(35, 120)
 	end
 	local payload = string.char(table.unpack(data))
 
@@ -41,8 +41,8 @@ for i=1, 100 do
 
 	-- print("\ndecryptedPayload:",plaintext,"\nverified:",validate)
 
-	assert(payload~=tostring(ciphertext), "Encrypted payload must be different from plaintext")
-	assert(payload==tostring(plaintext), "Decrypted data must equal the original payload")
+	assert(payload ~= tostring(ciphertext), "Encrypted payload must be different from plaintext")
+	assert(payload == tostring(plaintext), "Decrypted data must equal the original payload")
 	assert(validate, "Signature must verify decrypted data")
 
 	--print("    Test run %d passed", i)

@@ -114,15 +114,12 @@ local function counter(incr)
 end
 
 local function BE_toInt(bs, i)
-	return blshift((bs[i] or 0), 24)
-		+ blshift((bs[i + 1] or 0), 16)
-		+ blshift((bs[i + 2] or 0), 8)
-		+ (bs[i + 3] or 0)
+	return blshift((bs[i] or 0), 24) + blshift((bs[i + 1] or 0), 16) + blshift((bs[i + 2] or 0), 8) + (bs[i + 3] or 0)
 end
 
 local function preprocess(data)
 	local len = #data
-	local data_len = #data +1
+	local data_len = #data + 1
 
 	data[data_len] = 0x80
 	while data_len % 64 ~= 56 do
@@ -171,7 +168,7 @@ local function digestblock(w, C)
 end
 
 local function toBytes(t, n)
-	local b = table.create(n*4)
+	local b = table.create(n * 4)
 	for i = 1, n do
 		b[(i - 1) * 4 + 1] = band(brshift(t[i], 24), 0xFF)
 		b[(i - 1) * 4 + 2] = band(brshift(t[i], 16), 0xFF)
@@ -215,7 +212,7 @@ local function hmac(data, key)
 
 	ipad = digest(ipad)
 
-	local padded_key = table.create(blocksize*2)
+	local padded_key = table.create(blocksize * 2)
 
 	for i = 1, blocksize do
 		padded_key[i] = opad[i]

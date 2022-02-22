@@ -92,7 +92,7 @@ local function sign(privateKey, message)
 
 	local result, result_len = e, #e
 	for i = 1, #s do
-		result[result_len+i] = s[i]
+		result[result_len + i] = s[i]
 	end
 
 	return setmetatable(result, util.byteTableMT)

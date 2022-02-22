@@ -86,10 +86,10 @@ end
 local function serialize(state)
 	local r, len_r = {}, 0
 	for i = 1, 16 do
-		r[len_r+1] = band(state[i], 0xFF)
-		r[len_r+2] = band(brshift(state[i], 8), 0xFF)
-		r[len_r+3] = band(brshift(state[i], 16), 0xFF)
-		r[len_r+4] = band(brshift(state[i], 24), 0xFF)
+		r[len_r + 1] = band(state[i], 0xFF)
+		r[len_r + 2] = band(brshift(state[i], 8), 0xFF)
+		r[len_r + 3] = band(brshift(state[i], 16), 0xFF)
+		r[len_r + 4] = band(brshift(state[i], 24), 0xFF)
 		len_r += 4
 	end
 	return r
