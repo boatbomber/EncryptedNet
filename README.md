@@ -4,6 +4,8 @@
 
 Authenticated encryption of Roblox networking with ECDH key exchanges and ChaCha20 ciphering.
 
+This is designed to be used with [RbxNet](https://github.com/roblox-aurora/rbx-net)! A version that supports native RemoteFunction/Event instances will be coming later.
+
 ## Usage
 
 This library returns a function that wraps your remotes, like so.
