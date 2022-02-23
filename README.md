@@ -1,3 +1,5 @@
+[![itch](https://raw.githubusercontent.com/gist/csqrl/56c5f18b229ca1e61feb6eb5fb149f43/raw/itch.svg)](https://boatbomber.itch.io/encryptednet)
+
 # EncryptedNet
 
 Authenticated encryption of Roblox networking with ECDH key exchanges and ChaCha20 ciphering.
