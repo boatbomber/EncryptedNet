@@ -1,6 +1,6 @@
 [package]
 name = "boatbomber/encryptednet"
-description = "A library for encrypting Roblox networking with ECDH key exchanges and ChaCha20 ciphering."
+description = "Authenticated encryption of Roblox networking with ECDH key exchanges and ChaCha20 ciphering."
 version = "1.0.0"
 license = "MIT"
 authors = ["boatbomber (https://boatbomber.com)"]
