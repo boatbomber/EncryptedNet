@@ -18,7 +18,7 @@ local pInverse = { 5592405, 5592405, 5592405, 5592405, 5592405, 5592405, 1480021
 local r2 = { 13533400, 837116, 6278376, 13533388, 837116, 6278376, 7504076 }
 
 local function multByP(a)
-	local a1, a2, a3, a4, a5, a6, a7 = table.unpack(a)
+	local a1, a2, a3, a4, a5, a6, a7 = a[1], a[2], a[3], a[4], a[5], a[6], a[7]
 
 	local c1 = a1 * 3
 	local c2 = a2 * 3
@@ -103,22 +103,27 @@ local function reduceModP(a)
 		c2 = c2 - 1
 		c1 = c1 + 0x1000000
 	end
+
 	if c2 < 0 then
 		c3 = c3 - 1
 		c2 = c2 + 0x1000000
 	end
+
 	if c3 < 0 then
 		c4 = c4 - 1
 		c3 = c3 + 0x1000000
 	end
+
 	if c4 < 0 then
 		c5 = c5 - 1
 		c4 = c4 + 0x1000000
 	end
+
 	if c5 < 0 then
 		c6 = c6 - 1
 		c5 = c5 + 0x1000000
 	end
+
 	if c6 < 0 then
 		c7 = c7 - 1
 		c6 = c6 + 0x1000000
@@ -165,26 +170,27 @@ local function montgomeryModP(a)
 end
 
 local function inverseMontgomeryModP(a)
-	local a = { table.unpack(a) }
+	local newA = { table.unpack(a) }
 
 	for i = 8, 14 do
-		a[i] = 0
+		newA[i] = 0
 	end
 
-	return REDC(a)
+	return REDC(newA)
 end
 
 local ONE = montgomeryModP({ 1, 0, 0, 0, 0, 0, 0 })
 
 local function expModP(base, exponentBinary)
-	local base = { table.unpack(base) }
+	local newBase = { table.unpack(base) }
 	local result = { table.unpack(ONE) }
 
 	for i = 1, 168 do
 		if exponentBinary[i] == 1 then
-			result = multModP(result, base)
+			result = multModP(result, newBase)
 		end
-		base = squareModP(base)
+
+		newBase = squareModP(newBase)
 	end
 
 	return result

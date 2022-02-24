@@ -18,174 +18,55 @@ local decodeInt = arith.decodeInt
 local modQMT
 
 local q = { 9622359, 6699217, 13940450, 16775734, 16777215, 16777215, 3940351 }
-local qMinusTwoBinary = {
-	1,
-	0,
-	1,
-	0,
-	1,
-	0,
-	1,
-	0,
-	1,
-	1,
-	0,
-	0,
-	1,
-	0,
-	1,
-	1,
-	0,
-	1,
-	0,
-	0,
-	1,
-	0,
-	0,
-	1,
-	1,
-	0,
-	0,
-	0,
-	1,
-	0,
-	1,
-	1,
-	0,
-	0,
-	0,
-	1,
-	1,
-	1,
-	0,
-	0,
-	0,
-	1,
-	1,
-	0,
-	0,
-	1,
-	1,
-	0,
-	0,
-	1,
-	0,
-	0,
-	0,
-	1,
-	1,
-	1,
-	0,
-	1,
-	1,
-	0,
-	1,
-	1,
-	0,
-	1,
-	0,
-	0,
-	1,
-	0,
-	1,
-	0,
-	1,
-	1,
-	0,
-	1,
-	1,
-	0,
-	1,
-	1,
-	0,
-	0,
-	0,
-	1,
-	0,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	1,
-	0,
-	0,
-	0,
-	0,
-	0,
-	1,
-	1,
-	1,
-	1,
-}
+-- this isn't an optimization, it just shortens the amount of time I have to scroll
+local qMinusTwoBinary = table.create(166, 1)
+qMinusTwoBinary[2] = 0
+qMinusTwoBinary[4] = 0
+qMinusTwoBinary[6] = 0
+qMinusTwoBinary[8] = 0
+qMinusTwoBinary[11] = 0
+qMinusTwoBinary[12] = 0
+qMinusTwoBinary[14] = 0
+qMinusTwoBinary[17] = 0
+qMinusTwoBinary[19] = 0
+qMinusTwoBinary[20] = 0
+qMinusTwoBinary[22] = 0
+qMinusTwoBinary[23] = 0
+qMinusTwoBinary[26] = 0
+qMinusTwoBinary[27] = 0
+qMinusTwoBinary[28] = 0
+qMinusTwoBinary[30] = 0
+qMinusTwoBinary[33] = 0
+qMinusTwoBinary[34] = 0
+qMinusTwoBinary[35] = 0
+qMinusTwoBinary[39] = 0
+qMinusTwoBinary[40] = 0
+qMinusTwoBinary[41] = 0
+qMinusTwoBinary[44] = 0
+qMinusTwoBinary[45] = 0
+qMinusTwoBinary[48] = 0
+qMinusTwoBinary[49] = 0
+qMinusTwoBinary[51] = 0
+qMinusTwoBinary[52] = 0
+qMinusTwoBinary[53] = 0
+qMinusTwoBinary[57] = 0
+qMinusTwoBinary[60] = 0
+qMinusTwoBinary[63] = 0
+qMinusTwoBinary[65] = 0
+qMinusTwoBinary[66] = 0
+qMinusTwoBinary[68] = 0
+qMinusTwoBinary[70] = 0
+qMinusTwoBinary[73] = 0
+qMinusTwoBinary[76] = 0
+qMinusTwoBinary[79] = 0
+qMinusTwoBinary[80] = 0
+qMinusTwoBinary[81] = 0
+qMinusTwoBinary[83] = 0
+qMinusTwoBinary[158] = 0
+qMinusTwoBinary[159] = 0
+qMinusTwoBinary[160] = 0
+qMinusTwoBinary[161] = 0
+qMinusTwoBinary[162] = 0
 
 -- We're using the Montgomery Reduction for fast modular multiplication.
 -- https://en.wikipedia.org/wiki/Montgomery_modular_multiplication
@@ -244,47 +125,48 @@ local function montgomeryModQ(a)
 end
 
 local function inverseMontgomeryModQ(a)
-	local a = { table.unpack(a) }
+	local newA = { table.unpack(a) }
 
 	for i = 8, 14 do
-		a[i] = 0
+		newA[i] = 0
 	end
 
-	return REDC(a)
+	return REDC(newA)
 end
 
 local ONE = montgomeryModQ({ 1, 0, 0, 0, 0, 0, 0 })
 
 local function expModQ(base, exponentBinary)
-	local base = { table.unpack(base) }
+	local newBase = { table.unpack(base) }
 	local result = { table.unpack(ONE) }
 
 	for i = 1, 168 do
 		if exponentBinary[i] == 1 then
-			result = multModQ(result, base)
+			result = multModQ(result, newBase)
 		end
-		base = squareModQ(base)
+
+		newBase = squareModQ(newBase)
 	end
 
 	return result
 end
 
 local function intExpModQ(base, exponent)
-	local base = { table.unpack(base) }
+	local newBase = { table.unpack(base) }
 	local result = setmetatable({ table.unpack(ONE) }, modQMT)
 
 	if exponent < 0 then
-		base = expModQ(base, qMinusTwoBinary)
+		newBase = expModQ(newBase, qMinusTwoBinary)
 		exponent = -exponent
 	end
 
 	while exponent > 0 do
 		if exponent % 2 == 1 then
-			result = multModQ(result, base)
+			result = multModQ(result, newBase)
 		end
-		base = squareModQ(base)
-		exponent = exponent / 2
-		exponent = exponent - exponent % 1
+
+		newBase = squareModQ(newBase)
+		exponent = math.floor(exponent / 2)
 	end
 
 	return result
@@ -297,9 +179,9 @@ local function encodeModQ(a)
 end
 
 local function decodeModQ(s)
-	s = type(s) == "table" and { table.unpack(s, 1, 21) } or { tostring(s):byte(1, 21) }
+	s = type(s) == "table" and { table.unpack(s, 1, 21) } or { string.byte(tostring(s), 1, 21) }
 	local result = decodeInt(s)
-	result[7] = result[7] % q[7]
+	result[7] %= q[7]
 
 	return setmetatable(result, modQMT)
 end
@@ -335,7 +217,7 @@ modQMT = {
 		end
 
 		if type(other) == "number" then
-			assert(other < 2 ^ 24, "number operand too big")
+			assert(other < 16777216, "number operand too big")
 			other = montgomeryModQ({ other, 0, 0, 0, 0, 0, 0 })
 		end
 
@@ -344,12 +226,12 @@ modQMT = {
 
 	__sub = function(a, b)
 		if type(a) == "number" then
-			assert(a < 2 ^ 24, "number operand too big")
+			assert(a < 16777216, "number operand too big")
 			a = montgomeryModQ({ a, 0, 0, 0, 0, 0, 0 })
 		end
 
 		if type(b) == "number" then
-			assert(b < 2 ^ 24, "number operand too big")
+			assert(b < 16777216, "number operand too big")
 			b = montgomeryModQ({ b, 0, 0, 0, 0, 0, 0 })
 		end
 
@@ -376,7 +258,7 @@ modQMT = {
 		end
 
 		if type(other) == "number" then
-			assert(other < 2 ^ 24, "number operand too big")
+			assert(other < 16777216, "number operand too big")
 			other = montgomeryModQ({ other, 0, 0, 0, 0, 0, 0 })
 		end
 
@@ -385,12 +267,12 @@ modQMT = {
 
 	__div = function(a, b)
 		if type(a) == "number" then
-			assert(a < 2 ^ 24, "number operand too big")
+			assert(a < 16777216, "number operand too big")
 			a = montgomeryModQ({ a, 0, 0, 0, 0, 0, 0 })
 		end
 
 		if type(b) == "number" then
-			assert(b < 2 ^ 24, "number operand too big")
+			assert(b < 16777216, "number operand too big")
 			b = montgomeryModQ({ b, 0, 0, 0, 0, 0, 0 })
 		end
 

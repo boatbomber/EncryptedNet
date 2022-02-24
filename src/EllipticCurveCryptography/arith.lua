@@ -1,16 +1,15 @@
 -- Big integer arithmetic for 168-bit (and 336-bit) numbers
 -- Numbers are represented as little-endian tables of 24-bit integers
+local twoPower = require(script.Parent.twoPower)
 
 local function isEqual(a, b)
-	return (
-			a[1] == b[1]
-			and a[2] == b[2]
-			and a[3] == b[3]
-			and a[4] == b[4]
-			and a[5] == b[5]
-			and a[6] == b[6]
-			and a[7] == b[7]
-		)
+	return a[1] == b[1]
+		and a[2] == b[2]
+		and a[3] == b[3]
+		and a[4] == b[4]
+		and a[5] == b[5]
+		and a[6] == b[6]
+		and a[7] == b[7]
 end
 
 local function compare(a, b)
@@ -208,8 +207,8 @@ local function addDouble(a, b)
 end
 
 local function mult(a, b, half_multiply)
-	local a1, a2, a3, a4, a5, a6, a7 = unpack(a)
-	local b1, b2, b3, b4, b5, b6, b7 = unpack(b)
+	local a1, a2, a3, a4, a5, a6, a7 = a[1], a[2], a[3], a[4], a[5], a[6], a[7]
+	local b1, b2, b3, b4, b5, b6, b7 = b[1], b[2], b[3], b[4], b[5], b[6], b[7]
 
 	local c1 = a1 * b1
 	local c2 = a1 * b2 + a2 * b1
@@ -279,7 +278,7 @@ end
 
 local function square(a)
 	-- returns a 336-bit integer (14 words)
-	local a1, a2, a3, a4, a5, a6, a7 = unpack(a)
+	local a1, a2, a3, a4, a5, a6, a7 = a[1], a[2], a[3], a[4], a[5], a[6], a[7]
 
 	local c1 = a1 * a1
 	local c2 = a1 * a2 * 2
@@ -341,11 +340,11 @@ local function square(a)
 end
 
 local function encodeInt(a)
-	local enc = {}
+	local enc = table.create(21)
 
 	for i = 1, 7 do
 		local word = a[i]
-		for j = 1, 3 do
+		for _ = 1, 3 do
 			table.insert(enc, word % 256)
 			word = math.floor(word / 256)
 		end
@@ -356,7 +355,7 @@ end
 
 local function decodeInt(enc)
 	local a = {}
-	local encCopy = {}
+	local encCopy = table.create(21)
 
 	for i = 1, 21 do
 		local byte = enc[i]
@@ -369,9 +368,9 @@ local function decodeInt(enc)
 	for i = 1, 21, 3 do
 		local word = 0
 		for j = 2, 0, -1 do
-			word = word * 256
-			word = word + encCopy[i + j]
+			word *= 256 + encCopy[i + j]
 		end
+
 		table.insert(a, word)
 	end
 
@@ -379,10 +378,10 @@ local function decodeInt(enc)
 end
 
 local function mods(d, w)
-	local result = d[1] % 2 ^ w
+	local result = d[1] % twoPower[w]
 
-	if result >= 2 ^ (w - 1) then
-		result = result - 2 ^ w
+	if result >= twoPower[w - 1] then
+		result -= twoPower[w]
 	end
 
 	return result
@@ -391,19 +390,19 @@ end
 -- Represents a 168-bit number as the (2^w)-ary Non-Adjacent Form
 local function NAF(d, w)
 	local t, t_len = {}, 0
-	local d = { unpack(d) }
+	local newD = { table.unpack(d) }
 
-	for i = 1, 168 do
-		if d[1] % 2 == 1 then
+	for _ = 1, 168 do
+		if newD[1] % 2 == 1 then
 			t_len += 1
-			t[t_len] = mods(d, w)
-			d = sub(d, { t[#t], 0, 0, 0, 0, 0, 0 })
+			t[t_len] = mods(newD, w)
+			newD = sub(newD, { t[#t], 0, 0, 0, 0, 0, 0 })
 		else
 			t_len += 1
 			t[t_len] = 0
 		end
 
-		d = rShift(d)
+		newD = rShift(newD)
 	end
 
 	return t
