@@ -5,6 +5,7 @@
 -- http://www.computercraft.info/forums2/index.php?/user/12870-anavrins
 -- http://pastebin.com/GPzf9JSa
 -- Last update: April 17, 2017
+local twoPower = require(script.Parent.twoPower)
 local util = require(script.Parent.util)
 
 local bxor = bit32.bxor
@@ -17,7 +18,7 @@ local tau = table.pack(string.byte("expand 16-byte k", 1, -1))
 local sigma = table.pack(string.byte("expand 32-byte k", 1, -1))
 
 local function rotl(n, b)
-	local s = n / (2 ^ (32 - b))
+	local s = n / twoPower[32 - b]
 	local f = s % 1
 	return (s - f) + f * mod
 end
@@ -35,7 +36,7 @@ local function quarterRound(s, a, b, c, d)
 end
 
 local function hashBlock(state, rnd)
-	local s = { unpack(state) }
+	local s = { table.unpack(state) }
 	for i = 1, rnd do
 		local r = i % 2 == 1
 		s = r and quarterRound(s, 1, 5, 9, 13) or quarterRound(s, 1, 6, 11, 16)
@@ -43,9 +44,11 @@ local function hashBlock(state, rnd)
 		s = r and quarterRound(s, 3, 7, 11, 15) or quarterRound(s, 3, 8, 9, 14)
 		s = r and quarterRound(s, 4, 8, 12, 16) or quarterRound(s, 4, 5, 10, 15)
 	end
+
 	for i = 1, 16 do
 		s[i] = (s[i] + state[i]) % mod
 	end
+
 	return s
 end
 
@@ -59,7 +62,7 @@ end
 local function initState(key, nonce, counter)
 	local isKey256 = #key == 32
 	local const = isKey256 and sigma or tau
-	local state = {}
+	local state = table.create(16)
 
 	state[1] = LE_toInt(const, 0)
 	state[2] = LE_toInt(const, 4)
@@ -84,7 +87,7 @@ local function initState(key, nonce, counter)
 end
 
 local function serialize(state)
-	local r, len_r = {}, 0
+	local r, len_r = table.create(16), 0
 	for i = 1, 16 do
 		r[len_r + 1] = band(state[i], 0xFF)
 		r[len_r + 2] = band(brshift(state[i], 8), 0xFF)
@@ -92,6 +95,7 @@ local function serialize(state)
 		r[len_r + 4] = band(brshift(state[i], 24), 0xFF)
 		len_r += 4
 	end
+
 	return r
 end
 
@@ -101,21 +105,22 @@ local function crypt(data, key, nonce, cntr, round)
 	assert(#key == 16 or #key == 32, "ChaCha20: Invalid key length (" .. #key .. "), must be 16 or 32")
 	assert(#nonce == 12, "ChaCha20: Invalid nonce length (" .. #nonce .. "), must be 12")
 
-	local data = type(data) == "table" and { unpack(data) } or util.stringToByteArray(data)
+	local newData = type(data) == "table" and { table.unpack(data) } or util.stringToByteArray(data)
 	cntr = tonumber(cntr) or 1
 	round = tonumber(round) or 20
 
 	local out, out_len = {}, 0
 	local state = initState(key, nonce, cntr)
-	local blockAmt = math.floor(#data / 64)
+	local blockAmt = math.floor(#newData / 64)
 	for i = 0, blockAmt do
 		local ks = serialize(hashBlock(state, round))
 		state[13] = (state[13] + 1) % mod
 
-		local block = {}
+		local block = table.create(64)
 		for j = 1, 64 do
-			block[j] = data[(i * 64) + j]
+			block[j] = newData[(i * 64) + j]
 		end
+
 		for j = 1, #block do
 			out_len += 1
 			out[out_len] = bxor(block[j], ks[j])
@@ -125,6 +130,7 @@ local function crypt(data, key, nonce, cntr, round)
 			task.wait()
 		end
 	end
+
 	return setmetatable(out, util.byteTableMT)
 end
 

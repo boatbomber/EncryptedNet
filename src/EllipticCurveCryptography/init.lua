@@ -11,8 +11,7 @@ local function getNonceFromEpoch()
 	local epoch = DateTime.now().UnixTimestampMillis
 	for i = 1, 12 do
 		nonce[i] = epoch % 256
-		epoch = epoch / 256
-		epoch = epoch - epoch % 1
+		epoch = math.floor(epoch / 256)
 	end
 
 	return nonce
@@ -26,27 +25,27 @@ local function encrypt(data, key)
 	local ciphertext = chacha20.crypt(data, encKey, nonce)
 
 	local result = nonce
-	for i = 1, #ciphertext do
-		table.insert(result, ciphertext[i])
+	for _, value in ipairs(ciphertext) do
+		table.insert(result, value)
 	end
 
 	local mac = sha256.hmac(result, macKey)
-	for i = 1, #mac do
-		table.insert(result, mac[i])
+	for _, value in ipairs(mac) do
+		table.insert(result, value)
 	end
 
 	return setmetatable(result, util.byteTableMT)
 end
 
 local function decrypt(data, key)
-	local data = type(data) == "table" and { unpack(data) } or { tostring(data):byte(1, -1) }
+	local actualData = type(data) == "table" and { table.unpack(data) } or { string.byte(tostring(data), 1, -1) }
 	local encKey = sha256.hmac("encKey", key)
 	local macKey = sha256.hmac("macKey", key)
-	local mac = sha256.hmac({ unpack(data, 1, #data - 32) }, macKey)
-	local messageMac = { unpack(data, #data - 31) }
+	local mac = sha256.hmac({ table.unpack(actualData, 1, #actualData - 32) }, macKey)
+	local messageMac = { table.unpack(actualData, #actualData - 31) }
 	assert(mac:isEqual(messageMac), "invalid mac")
-	local nonce = { unpack(data, 1, 12) }
-	local ciphertext = { unpack(data, 13, #data - 32) }
+	local nonce = { table.unpack(actualData, 1, 12) }
+	local ciphertext = { table.unpack(actualData, 13, #actualData - 32) }
 	local result = chacha20.crypt(ciphertext, encKey, nonce)
 
 	return setmetatable(result, util.byteTableMT)
@@ -59,6 +58,7 @@ local function keypair(seed)
 	else
 		x = modq.randomModQ()
 	end
+
 	local Y = curve.G * x
 
 	local privateKey = x:encode()
@@ -70,7 +70,6 @@ end
 local function exchange(privateKey, publicKey)
 	local x = modq.decodeModQ(privateKey)
 	local Y = curve.pointDecode(publicKey)
-
 	local Z = Y * x
 
 	local sharedSecret = sha256.digest(Z:encode())
@@ -79,33 +78,35 @@ local function exchange(privateKey, publicKey)
 end
 
 local function sign(privateKey, message)
-	local message = type(message) == "table" and string.char(unpack(message)) or tostring(message)
-	local privateKey = type(privateKey) == "table" and string.char(unpack(privateKey)) or tostring(privateKey)
-	local x = modq.decodeModQ(privateKey)
+	local actualMessage = type(message) == "table" and string.char(table.unpack(message)) or tostring(message)
+	local actualPrivateKey = type(privateKey) == "table" and string.char(table.unpack(privateKey))
+		or tostring(privateKey)
+
+	local x = modq.decodeModQ(actualPrivateKey)
 	local k = modq.randomModQ()
 	local R = curve.G * k
-	local e = modq.hashModQ(message .. tostring(R))
+	local e = modq.hashModQ(actualMessage .. tostring(R))
 	local s = k - x * e
 
 	e = e:encode()
 	s = s:encode()
 
 	local result, result_len = e, #e
-	for i = 1, #s do
-		result[result_len + i] = s[i]
+	for index, value in ipairs(s) do
+		result[result_len + index] = value
 	end
 
 	return setmetatable(result, util.byteTableMT)
 end
 
 local function verify(publicKey, message, signature)
-	local message = type(message) == "table" and string.char(unpack(message)) or tostring(message)
+	local actualMessage = type(message) == "table" and string.char(table.unpack(message)) or tostring(message)
 	local sigLen = #signature
 	local Y = curve.pointDecode(publicKey)
-	local e = modq.decodeModQ({ unpack(signature, 1, sigLen / 2) })
-	local s = modq.decodeModQ({ unpack(signature, sigLen / 2 + 1) })
+	local e = modq.decodeModQ({ table.unpack(signature, 1, sigLen / 2) })
+	local s = modq.decodeModQ({ table.unpack(signature, sigLen / 2 + 1) })
 	local Rv = curve.G * s + Y * e
-	local ev = modq.hashModQ(message .. tostring(Rv))
+	local ev = modq.hashModQ(actualMessage .. tostring(Rv))
 
 	return ev == e
 end

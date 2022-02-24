@@ -41,357 +41,35 @@ local expModP = modp.expModP
 local inverseMontgomeryModQ = modq.inverseMontgomeryModQ
 
 local pointMT
-local ZERO = { 0, 0, 0, 0, 0, 0, 0 }
+local ZERO = table.create(7, 0)
 local ONE = montgomeryModP({ 1, 0, 0, 0, 0, 0, 0 })
 
 -- Curve Parameters
 local d = montgomeryModP({ 122, 0, 0, 0, 0, 0, 0 })
 local p = { 3, 0, 0, 0, 0, 0, 15761408 }
-local pMinusTwoBinary = {
-	1,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	1,
-	0,
-	0,
-	0,
-	0,
-	1,
-	1,
-	1,
-	1,
-}
-local pMinusThreeOverFourBinary = {
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	1,
-	0,
-	0,
-	0,
-	0,
-	1,
-	1,
-	1,
-	1,
-}
+local pMinusTwoBinary = table.create(168, 0)
+pMinusTwoBinary[1] = 1
+pMinusTwoBinary[160] = 1
+pMinusTwoBinary[165] = 1
+pMinusTwoBinary[166] = 1
+pMinusTwoBinary[167] = 1
+pMinusTwoBinary[168] = 1
+
+local pMinusThreeOverFourBinary = table.create(166, 0)
+pMinusThreeOverFourBinary[158] = 1
+pMinusThreeOverFourBinary[163] = 1
+pMinusThreeOverFourBinary[164] = 1
+pMinusThreeOverFourBinary[165] = 1
+pMinusThreeOverFourBinary[166] = 1
+
 local G = {
 	{ 6636044, 10381432, 15741790, 2914241, 5785600, 264923, 4550291 },
 	{ 13512827, 8449886, 5647959, 1135556, 5489843, 7177356, 8002203 },
 	{ table.unpack(ONE) },
 }
+
 local O = {
-	{ table.unpack(ZERO) },
+	table.create(7, 0),
 	{ table.unpack(ONE) },
 	{ table.unpack(ONE) },
 }
@@ -403,7 +81,7 @@ local O = {
 -- https://www.hyperelliptic.org/EFD/g1p/auto-edwards-projective.html
 local function pointDouble(P1)
 	-- 3M + 4S
-	local X1, Y1, Z1 = table.unpack(P1)
+	local X1, Y1, Z1 = P1[1], P1[2], P1[3]
 
 	local b = addModP(X1, Y1)
 	local B = squareModP(b)
@@ -422,8 +100,8 @@ end
 
 local function pointAdd(P1, P2)
 	-- 10M + 1S
-	local X1, Y1, Z1 = table.unpack(P1)
-	local X2, Y2, Z2 = table.unpack(P2)
+	local X1, Y1, Z1 = P1[1], P1[2], P1[3]
+	local X2, Y2, Z2 = P2[1], P2[2], P2[3]
 
 	local A = multModP(Z1, Z2)
 	local B = squareModP(A)
@@ -441,7 +119,7 @@ local function pointAdd(P1, P2)
 end
 
 local function pointNeg(P1)
-	local X1, Y1, Z1 = table.unpack(P1)
+	local X1, Y1, Z1 = P1[1], P1[2], P1[3]
 
 	local X3 = subModP(ZERO, X1)
 	local Y3 = { table.unpack(Y1) }
@@ -457,7 +135,7 @@ end
 
 -- Converts (X:Y:Z) into (X:Y:1) = (x:y:1)
 local function pointScale(P1)
-	local X1, Y1, Z1 = table.unpack(P1)
+	local X1, Y1, Z1 = P1[1], P1[2], P1[3]
 
 	local A = expModP(Z1, pMinusTwoBinary)
 	local X3 = multModP(X1, A)
@@ -469,8 +147,8 @@ local function pointScale(P1)
 end
 
 local function pointIsEqual(P1, P2)
-	local X1, Y1, Z1 = table.unpack(P1)
-	local X2, Y2, Z2 = table.unpack(P2)
+	local X1, Y1, Z1 = P1[1], P1[2], P1[3]
+	local X2, Y2, Z2 = P2[1], P2[2], P2[3]
 
 	local A1 = multModP(X1, Z2)
 	local B1 = multModP(Y1, Z2)
@@ -482,7 +160,7 @@ end
 
 -- Checks if a projective point satisfies the curve equation
 local function pointIsOnCurve(P1)
-	local X1, Y1, Z1 = table.unpack(P1)
+	local X1, Y1, Z1 = P1[1], P1[2], P1[3]
 
 	local X12 = squareModP(X1)
 	local Y12 = squareModP(Y1)
@@ -507,7 +185,7 @@ local function scalarMult(multiplier, P1)
 	local naf = NAF(multiplier, 5)
 	local PTable = { P1 }
 	local P2 = pointDouble(P1)
-	local Q = { { table.unpack(ZERO) }, { table.unpack(ONE) }, { table.unpack(ONE) } }
+	local Q = { table.create(7, 0), { table.unpack(ONE) }, { table.unpack(ONE) } }
 
 	for i = 3, 31, 2 do
 		PTable[i] = pointAdd(PTable[i - 2], P2)
@@ -534,7 +212,7 @@ end
 
 local function scalarMultG(multiplier)
 	local naf = NAF(multiplier, 2)
-	local Q = { { table.unpack(ZERO) }, { table.unpack(ONE) }, { table.unpack(ONE) } }
+	local Q = { table.create(7, 0), { table.unpack(ONE) }, { table.unpack(ONE) } }
 
 	for i = 1, 168 do
 		if naf[i] == 1 then
@@ -552,7 +230,7 @@ end
 local function pointEncode(P1)
 	P1 = pointScale(P1)
 	local result = {}
-	local x, y = table.unpack(P1)
+	local x, y = P1[1], P1[2]
 
 	-- Encode y
 	result = encodeInt(y)
@@ -563,10 +241,10 @@ local function pointEncode(P1)
 end
 
 local function pointDecode(enc)
-	enc = type(enc) == "table" and { table.unpack(enc, 1, 22) } or { tostring(enc):byte(1, 22) }
+	enc = type(enc) == "table" and { table.unpack(enc, 1, 22) } or { string.byte(tostring(enc), 1, 22) }
 	-- Decode y
 	local y = decodeInt(enc)
-	y[7] = y[7] % p[7]
+	y[7] %= p[7]
 	-- Find {x, -x} using curve equation
 	local y2 = squareModP(y)
 	local u = subModP(y2, ONE)
@@ -581,6 +259,7 @@ local function pointDecode(enc)
 	if x[1] % 2 ~= enc[22] then
 		x = subModP(ZERO, x)
 	end
+
 	local P3 = { x, y, { table.unpack(ONE) } }
 
 	return setmetatable(P3, pointMT)
@@ -638,7 +317,7 @@ pointMT = {
 		end
 
 		if type(s) == "number" then
-			assert(s < 2 ^ 24, "number multiplier too big")
+			assert(s < 16777216, "number multiplier too big")
 			s = { s, 0, 0, 0, 0, 0, 0 }
 		else
 			s = inverseMontgomeryModQ(s)

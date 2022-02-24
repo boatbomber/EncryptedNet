@@ -5,6 +5,7 @@
 -- http://www.computercraft.info/forums2/index.php?/user/12870-anavrins
 -- http://pastebin.com/6UV4qfNF
 -- Last update: October 10, 2017
+local twoPower = require(script.Parent.twoPower)
 local util = require(script.Parent.util)
 
 local mod32 = 2 ^ 32
@@ -12,16 +13,15 @@ local band = bit32.band
 local bnot = bit32.bnot
 local bxor = bit32.bxor
 local blshift = bit32.lshift
-local upack = table.unpack
 
 local function rrotate(n, b)
-	local s = n / (2 ^ b)
+	local s = n / twoPower[b]
 	local f = s % 1
 	return (s - f) + f * mod32
 end
+
 local function brshift(int, by) -- Thanks bit32 for bad rshift
-	local s = int / (2 ^ by)
-	return s - s % 1
+	return math.floor(int / twoPower[by])
 end
 
 local H = {
@@ -110,6 +110,7 @@ local function counter(incr)
 	else
 		t1 = t1 + incr
 	end
+
 	return t2, t1
 end
 
@@ -131,11 +132,13 @@ local function preprocess(data)
 
 	local proc = table.create(blocks)
 	for i = 1, blocks do
-		proc[i] = {}
+		local block = table.create(16)
+		proc[i] = block
 		for j = 1, 16 do
-			proc[i][j] = BE_toInt(data, 1 + ((i - 1) * 64) + ((j - 1) * 4))
+			block[j] = BE_toInt(data, 1 + ((i - 1) * 64) + ((j - 1) * 4))
 		end
 	end
+
 	proc[blocks][15], proc[blocks][16] = counter(len * 8)
 	return proc
 end
@@ -146,7 +149,8 @@ local function digestblock(w, C)
 		local s1 = bxor(bxor(rrotate(w[j - 2], 17), rrotate(w[j - 2], 19)), brshift(w[j - 2], 10))
 		w[j] = (w[j - 16] + s0 + w[j - 7] + s1) % mod32
 	end
-	local a, b, c, d, e, f, g, h = upack(C)
+
+	local a, b, c, d, e, f, g, h = C[1], C[2], C[3], C[4], C[5], C[6], C[7], C[8]
 	for j = 1, 64 do
 		local S1 = bxor(bxor(rrotate(e, 6), rrotate(e, 11)), rrotate(e, 25))
 		local ch = bxor(band(e, f), band(bnot(e), g))
@@ -156,6 +160,7 @@ local function digestblock(w, C)
 		local temp2 = (S0 + maj) % mod32
 		h, g, f, e, d, c, b, a = g, f, e, (d + temp1) % mod32, c, b, a, (temp1 + temp2) % mod32
 	end
+
 	C[1] = (C[1] + a) % mod32
 	C[2] = (C[2] + b) % mod32
 	C[3] = (C[3] + c) % mod32
@@ -175,45 +180,45 @@ local function toBytes(t, n)
 		b[(i - 1) * 4 + 3] = band(brshift(t[i], 8), 0xFF)
 		b[(i - 1) * 4 + 4] = band(t[i], 0xFF)
 	end
+
 	return setmetatable(b, util.byteTableMT)
 end
 
 local function digest(data)
 	data = data or ""
-	data = type(data) == "table" and { upack(data) } or util.stringToByteArray(data)
+	data = type(data) == "table" and { table.unpack(data) } or util.stringToByteArray(data)
 
 	data = preprocess(data)
-	local C = { upack(H) }
-	for i = 1, #data do
-		C = digestblock(data[i], C)
+	local C = { table.unpack(H) }
+	for _, value in ipairs(data) do
+		C = digestblock(value, C)
 	end
+
 	return toBytes(C, 8)
 end
 
 local function hmac(data, key)
-	local data = type(data) == "table" and { upack(data) } or util.stringToByteArray(data)
-	local key = type(key) == "table" and { upack(key) } or util.stringToByteArray(key)
+	local actualData = type(data) == "table" and { table.unpack(data) } or util.stringToByteArray(data)
+	local actualKey = type(key) == "table" and { table.unpack(key) } or util.stringToByteArray(key)
 
 	local blocksize = 64
 
-	key = #key > blocksize and digest(key) or key
+	actualKey = #actualKey > blocksize and digest(actualKey) or actualKey
 
 	local ipad = table.create(blocksize)
 	local opad = table.create(blocksize)
 
 	for i = 1, blocksize do
-		ipad[i] = bxor(0x36, key[i] or 0)
-		opad[i] = bxor(0x5C, key[i] or 0)
+		ipad[i] = bxor(0x36, actualKey[i] or 0)
+		opad[i] = bxor(0x5C, actualKey[i] or 0)
 	end
 
-	for i = 1, #data do
-		ipad[blocksize + i] = data[i]
+	for i, value in ipairs(actualData) do
+		ipad[blocksize + i] = value
 	end
 
 	ipad = digest(ipad)
-
 	local padded_key = table.create(blocksize * 2)
-
 	for i = 1, blocksize do
 		padded_key[i] = opad[i]
 		padded_key[blocksize + i] = ipad[i]
@@ -223,17 +228,17 @@ local function hmac(data, key)
 end
 
 local function pbkdf2(pass, salt, iter, dklen)
-	local salt = type(salt) == "table" and salt or util.stringToByteArray(salt)
+	local actualSalt = type(salt) == "table" and salt or util.stringToByteArray(salt)
 	local hashlen = 32
-	local dklen = dklen or 32
+	local actualDklen = dklen or 32
 	local block = 1
 	local out = {}
 
-	while dklen > 0 do
+	while actualDklen > 0 do
 		local ikey = {}
-		local isalt = { upack(salt) }
+		local isalt = { table.unpack(actualSalt) }
 		local isalt_len = #isalt
-		local clen = dklen > hashlen and hashlen or dklen
+		local clen = actualDklen > hashlen and hashlen or actualDklen
 
 		isalt[isalt_len + 1] = band(brshift(block, 24), 0xFF)
 		isalt[isalt_len + 2] = band(brshift(block, 16), 0xFF)
@@ -242,7 +247,7 @@ local function pbkdf2(pass, salt, iter, dklen)
 
 		isalt_len += 4
 
-		for j = 1, iter do
+		for _ = 1, iter do
 			isalt = hmac(isalt, pass)
 			for k = 1, clen do
 				ikey[k] = bxor(isalt[k], ikey[k] or 0)
@@ -251,7 +256,8 @@ local function pbkdf2(pass, salt, iter, dklen)
 			-- 	coroutine.yield("PBKDF2")
 			-- end
 		end
-		dklen = dklen - clen
+
+		actualDklen = actualDklen - clen
 		block = block + 1
 		for k = 1, clen do
 			out[k] = ikey[k]
