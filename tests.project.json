@@ -1,0 +1,19 @@
+{
+	"name": "Tests",
+	"tree": {
+		"$className": "DataModel",
+
+		"Workspace": {
+			"$className": "Workspace",
+			"$path": "Tests",
+
+			"DevPackages": {
+				"$path": "DevPackages"
+			},
+
+			"ECC": {
+				"$path": "src/EllipticCurveCryptography"
+			}
+		}
+	}
+}
