@@ -368,7 +368,8 @@ local function decodeInt(enc)
 	for i = 1, 21, 3 do
 		local word = 0
 		for j = 2, 0, -1 do
-			word *= 256 + encCopy[i + j]
+			word *= 256
+			word += encCopy[i + j]
 		end
 
 		table.insert(a, word)
