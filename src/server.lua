@@ -26,6 +26,23 @@ Players.PlayerRemoving:Connect(function(Player)
 	PlayerData[Player] = nil
 end)
 
+local function getPlayerData(Player, shouldYield)
+	local playerData = PlayerData[Player]
+	if shouldYield and playerData == nil then
+		-- Perhaps they're in middle of the handshake?
+		-- Poll for half a second
+		for _=1, 15 do
+			task.wait(1/30)
+			playerData = PlayerData[Player]
+			if playerData then
+				break
+			end
+		end
+	end
+
+	return playerData
+end
+
 return function(Remote)
 	local Wrapper = setmetatable({}, { __index = Remote })
 
@@ -33,7 +50,7 @@ return function(Remote)
 
 	function Wrapper:Connect(callback)
 		Remote:Connect(function(Player, encryptedData, signature)
-			local playerData = PlayerData[Player]
+			local playerData = getPlayerData(Player, false) -- No yield since they can't have sent valid data without a handshake first
 			if not playerData then
 				return
 			end
@@ -59,7 +76,7 @@ return function(Remote)
 	end
 
 	function Wrapper:SendToPlayer(Player, ...)
-		local playerData = PlayerData[Player]
+		local playerData = getPlayerData(Player, true) -- Yield in case we're sending before they're ready
 		if not playerData then
 			return
 		end
@@ -81,13 +98,13 @@ return function(Remote)
 				continue
 			end
 
-			Wrapper:SendToPlayer(Player, ...)
+			task.spawn(Wrapper.SendToPlayer, Wrapper, Player, ...)
 		end
 	end
 
 	function Wrapper:SendToAllPlayers(...)
 		for _, Player in ipairs(Players:GetPlayers()) do
-			Wrapper:SendToPlayer(Player, ...)
+			task.spawn(Wrapper.SendToPlayer, Wrapper, Player, ...)
 		end
 	end
 
@@ -100,14 +117,14 @@ return function(Remote)
 				continue
 			end
 
-			Wrapper:SendToPlayer(Player, ...)
+			task.spawn(Wrapper.SendToPlayer, Wrapper, Player, ...)
 		end
 	end
 
 	-- AsyncFunction
 
 	function Wrapper:CallPlayerAsync(Player, ...)
-		local playerData = PlayerData[Player]
+		local playerData = getPlayerData(Player, true) -- Yield in case we're calling before they're ready
 		if not playerData then
 			return
 		end
@@ -125,7 +142,7 @@ return function(Remote)
 
 	function Wrapper:SetCallback(callback)
 		Remote:SetCallback(function(Player, encryptedData, signature)
-			local playerData = PlayerData[Player]
+			local playerData = getPlayerData(Player, false) -- No yield since they can't have sent valid data without a handshake first
 			if not playerData then
 				return
 			end
