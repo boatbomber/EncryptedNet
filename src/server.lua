@@ -22,6 +22,10 @@ function HandshakeRemote.OnServerInvoke(Player, clientPublic)
 	return serverPublic
 end
 
+Players.PlayerRemoving:Connect(function(Player)
+	PlayerData[Player] = nil
+end)
+
 return function(Remote)
 	local Wrapper = setmetatable({}, { __index = Remote })
 
@@ -29,8 +33,13 @@ return function(Remote)
 
 	function Wrapper:Connect(callback)
 		Remote:Connect(function(Player, encryptedData, signature)
-			local secret = PlayerData[Player].sharedSecret
-			local clientPublic = PlayerData[Player].clientPublic
+			local playerData = PlayerData[Player]
+			if not playerData then
+				return
+			end
+
+			local secret = playerData.sharedSecret
+			local clientPublic = playerData.clientPublic
 
 			-- Metatables get lost in transit
 			setmetatable(encryptedData, ECC._byteMetatable)
@@ -50,8 +59,12 @@ return function(Remote)
 	end
 
 	function Wrapper:SendToPlayer(Player, ...)
-		local secret = PlayerData[Player].sharedSecret
-		local private = PlayerData[Player].serverPrivate
+		local playerData = PlayerData[Player]
+		if not playerData then
+			return
+		end
+		local secret = playerData.sharedSecret
+		local private = playerData.serverPrivate
 
 		local args = table.pack(...)
 		local data = HttpService:JSONEncode(args)
@@ -94,8 +107,12 @@ return function(Remote)
 	-- AsyncFunction
 
 	function Wrapper:CallPlayerAsync(Player, ...)
-		local secret = PlayerData[Player].sharedSecret
-		local private = PlayerData[Player].serverPrivate
+		local playerData = PlayerData[Player]
+		if not playerData then
+			return
+		end
+		local secret = playerData.sharedSecret
+		local private = playerData.serverPrivate
 
 		local args = table.pack(...)
 		local data = HttpService:JSONEncode(args)
@@ -108,8 +125,12 @@ return function(Remote)
 
 	function Wrapper:SetCallback(callback)
 		Remote:SetCallback(function(Player, encryptedData, signature)
-			local secret = PlayerData[Player].sharedSecret
-			local clientPublic = PlayerData[Player].clientPublic
+			local playerData = PlayerData[Player]
+			if not playerData then
+				return
+			end
+			local secret = playerData.sharedSecret
+			local clientPublic = playerData.clientPublic
 
 			-- Metatables get lost in transit
 			setmetatable(encryptedData, ECC._byteMetatable)
